@@ -6,22 +6,21 @@ vol-test supports testing against remote environments. Remote Docker hosts shoul
 
 ## Setup
 
-- Install BATS.
-
+- Set up docker machines (node1 & node2)
     ```
-    git clone https://github.com/sstephenson/bats.git
-    cd bats
-    sudo ./install.sh /usr/local
+    ssh-copy-id user@node1
+    docker-machine create --driver generic --generic-ip-address <node1-ip> --generic-ssh-key <your_ssh_key> --generic-ssh-user <node1-user> node1
+    ssh-copy-id user@node2
+    docker-machine create --driver generic --generic-ip-address <node2-ip> --generic-ssh-key <your_ssh_key> --generic-ssh-user <node2-user> node2
     ```
 
-- Clone this repository (optionally, fork), and pull submodules
-
+- Clone and build this repository (optionally, fork)
     ```
     git clone https://github.com/khudgins/vol-test
     cd vol-tests
-    git submodule init
-    git submodule update --recursive --remote
+    make container
     ```
+
 
 ## Running
 

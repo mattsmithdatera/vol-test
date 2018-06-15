@@ -12,6 +12,12 @@ build:
 	go get -d ./...
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/vol-test cmd/vol-test/main.go
 
+build-local:
+	docker-machine env $(NODE1) > node1
+	docker-machine env $(NODE2) > node2
+	go get -d ./...
+	GOARCH=amd64 CGO_ENABLED=0 go build -o bin/vol-test cmd/vol-test/main.go
+
 clean:
 	rm -f bin/vol-test
 

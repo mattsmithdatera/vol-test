@@ -104,19 +104,21 @@ func (c *TestClient) InstallPlugin() error {
 	return nil
 }
 
-func (c *TestClient) DeletePlugin() {
+func (c *TestClient) DeletePlugin() error {
+	log.Debugf("Deleting Plugin: %s", c.Plugin)
 	err := c.dclient.PluginDisable(ctxt, c.Plugin, types.PluginDisableOptions{
 		Force: true,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
 	err = c.dclient.PluginRemove(ctxt, c.Plugin, types.PluginRemoveOptions{
 		Force: true,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 func (c *TestClient) CreateVolume() error {
@@ -187,13 +189,28 @@ func (c *TestClient) CreateContainerWithVolume() error {
 	conName := c.Node + "-" + RandString(5)
 	c.con = conName
 	log.Debugf("Creating container [%s] with volume [%s]\n", c.con, c.vol)
-	// TODO(_alastor_): Get this working with persistent volumes
-	conf := &container.Config{}
-	hconf := &container.HostConfig{}
+	conf := &container.Config{
+		Cmd: []string{`/bin/bash`},
+	}
+	hconf := &container.HostConfig{
+		Binds:        []string{fmt.Sprintf("%s:/data", c.vol)},
+		VolumeDriver: c.Plugin,
+	}
 	nconf := &network.NetworkingConfig{}
-	c.dclient.ContainerCreate(ctxt, conf, hconf, nconf, conName)
+	_, err := c.dclient.ContainerCreate(ctxt, conf, hconf, nconf, conName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
+
+// func (c *TestClient) WriteDataToVolume() {
+// 	_, err := c.dclient.ContainerExecAttach(ctxt, c.con, types.ExecStartType{
+// 		Detach: true,
+// 		Tty:    true,
+// 	})
+
+// }
 
 func (c *TestClient) CleanVolumes() {
 	log.Debug("Cleaning volumes")
@@ -211,11 +228,14 @@ func (c *TestClient) CleanVolumes() {
 
 func (c *TestClient) CleanContainers() error {
 	log.Debug("Cleaning containers")
-	containers, err := c.dclient.ContainerList(ctxt, types.ContainerListOptions{})
+	containers, err := c.dclient.ContainerList(ctxt, types.ContainerListOptions{
+		All: true,
+	})
 	if err != nil {
 		panic(err)
 	}
 	for _, container := range containers {
+		log.Debugf("Cleaning Container: %s", container.ID)
 		err = c.dclient.ContainerRemove(ctxt, container.ID, types.ContainerRemoveOptions{
 			Force: true,
 		})

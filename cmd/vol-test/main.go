@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	debug = flag.Bool("debug", false, "")
+	debug     = flag.Bool("debug", false, "")
+	cleanOnly = flag.Bool("clean-only", false, "")
 )
 
 func init() {
@@ -27,42 +28,47 @@ func init() {
 }
 
 func Main() int {
-	log.Debug("Starting volume tests")
 	cli1 := lib.NewTestClient("dateraiodev/docker-driver", "node1")
 	cli2 := lib.NewTestClient("dateraiodev/docker-driver", "node2")
 
-	tests := []func() error{
-		cli1.InstallPlugin,
-		cli2.InstallPlugin,
+	if !*cleanOnly {
 
-		cli1.CreateVolume,
-		cli2.CreateVolume,
+		log.Debug("Starting volume tests")
+		tests := []func() error{
+			cli1.InstallPlugin,
+			cli2.InstallPlugin,
 
-		cli1.ConfirmVolume,
-		cli2.ConfirmVolume,
+			cli1.CreateVolume,
+			cli2.CreateVolume,
 
-		cli1.InspectVolume,
-		cli2.InspectVolume,
+			cli1.ConfirmVolume,
+			cli2.ConfirmVolume,
 
-		// cli1.CreateContainerWithVolume,
-		// cli2.CreateContainerWithVolume,
-	}
-	results := []string{}
-	for _, v := range tests {
-		results = append(results, lib.RunTestFunc(v))
-	}
+			cli1.InspectVolume,
+			cli2.InspectVolume,
 
-	fail := false
-	for _, v := range results {
-		log.Info(v)
-		if strings.Contains(v, lib.Xmark) {
-			fail = true
+			cli1.CreateContainerWithVolume,
+			cli2.CreateContainerWithVolume,
 		}
-	}
-	if !fail {
-		log.Info("\nThis is a triumph!!!\n")
+		results := []string{}
+		for _, v := range tests {
+			results = append(results, lib.RunTestFunc(v))
+		}
+
+		fail := false
+		for _, v := range results {
+			log.Info(v)
+			if strings.Contains(v, lib.Xmark) {
+				fail = true
+			}
+		}
+		if !fail {
+			log.Info("\nThis is a triumph!!!\n")
+		} else {
+			log.Info("\nThis is a failure!!!\n")
+		}
 	} else {
-		log.Info("\nThis is a failure!!!\n")
+		log.Info("Skipping tests, running just testbed cleaning")
 	}
 
 	clean := func() { go cli1.Clean(); go cli2.Clean() }

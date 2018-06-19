@@ -18,9 +18,8 @@ vol-test supports testing against remote environments. Remote Docker hosts shoul
     ```
     git clone https://github.com/khudgins/vol-test
     cd vol-tests
-    make container
+    make local
     ```
-
 
 ## Running
 
@@ -38,25 +37,20 @@ vol-test requires a few environment variables to be configured before running:
 - To validate a volume plugin:
 
 1. Export the name of the plugin that is referenced when creating a network as the environmental variable `$VOLDRIVER`.
-2. Run the bats tests by running `bats singlenode.bats secondnode.bats`
+2. Run the tests by running `./bin/vol-tests`
 
 Example using the vieux/sshfs driver (replace `vieux/sshfs` with the name of the plugin/driver you wish to test):
 
-Prior to running tests the first time, you'll want to pull all the BATS assist submodules, as well:
 ```
-git submodule update --recursive --remote
-```
-
-```
-$PREFIX="docker-machine ssh node1 "
 $VOLDRIVER=vieux/sshfs
 $CREATEOPTS="-o khudgins@192.168.99.1:~/tmp -o password=yourpw"
 
-bats singlenode.bats
+./bin/vol-test
 
-✓ Test: Create volume using driver (vieux/sshfs)
-✓ Test: Confirm volume is created using driver (vieux/sshfs)
+INFO[0025] ✔ Test: InstallPlugin
+INFO[0025] ✔ Test: CreateVolume
+INFO[0025] ✔ Test: ConfirmVolume
 ...
 
-15 tests, 0 failures
+30 tests, 0 failures
 ```

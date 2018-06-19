@@ -35,24 +35,27 @@ var (
 )
 
 type TestClient struct {
-	Node    string
-	Plugin  string
-	VolOpts map[string]string
-	dclient *client.Client
-	vol     string
-	con     string
+	Node     string
+	Plugin   string
+	PlugOpts map[string]string
+	VolOpts  map[string]string
+	dclient  *client.Client
+	vol      string
+	con      string
 }
 
-func NewTestClient(plugin, nodeFile string) *TestClient {
+func NewTestClient(plugin string, plugOpts, volOpts map[string]string, nodeFile string) *TestClient {
 	SourceFile(nodeFile)
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	return &TestClient{
-		Plugin:  plugin,
-		Node:    nodeFile,
-		dclient: cli,
+		Plugin:   plugin,
+		Node:     nodeFile,
+		PlugOpts: plugOpts,
+		VolOpts:  volOpts,
+		dclient:  cli,
 	}
 }
 

@@ -28,8 +28,12 @@ func init() {
 }
 
 func Main() int {
-	cli1 := lib.NewTestClient("dateraiodev/docker-driver", "node1")
-	cli2 := lib.NewTestClient("dateraiodev/docker-driver", "node2")
+	driver := os.Getenv("VOLDRIVER")
+	// pluginOpts := os.Getenv("PLUGINOPTS")
+	// createOpts := os.Getenv("CREATEOPTS")
+	//TODO (_alastor_): Actually use pluginOpts and createOpts
+	cli1 := lib.NewTestClient(driver, map[string]string{}, map[string]string{}, "node1")
+	cli2 := lib.NewTestClient(driver, map[string]string{}, map[string]string{}, "node2")
 
 	if !*cleanOnly {
 

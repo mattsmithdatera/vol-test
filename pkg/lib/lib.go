@@ -71,6 +71,15 @@ func applyColor(toBeColored, color string) string {
 	return fmt.Sprintf("%s%s%s", colors[color], toBeColored, suffix)
 }
 
+func CallMethodByName(t *TestClient, method string) error {
+	res := reflect.ValueOf(t).MethodByName(method).Call([]reflect.Value{})
+	ret := res[0].Interface()
+	if ret != nil {
+		return ret.(error)
+	}
+	return nil
+}
+
 func GetFunctionName(i interface{}) string {
 	long := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	parts := strings.Split(long, `.`)
@@ -78,12 +87,12 @@ func GetFunctionName(i interface{}) string {
 	return strings.TrimRight(last, "-fm")
 }
 
-func RunTestFunc(fn func() error) string {
-	testName := GetFunctionName(fn)
-	result := fmt.Sprintf("Test: %s ", testName)
-	if err := fn(); err != nil {
+func RunTestFunc(t *TestClient, method string) string {
+	// testName := GetFunctionName(fn)
+	result := fmt.Sprintf("Test: %s -- %s", method, t.Node)
+	if err := CallMethodByName(t, method); err != nil {
 		result = fmt.Sprintf("%s ", applyColor(Xmark, "red")) + result
-		result += fmt.Sprintf("Test %s failed. error: %s", testName, err)
+		result += fmt.Sprintf("Test %s failed. error: %s", method, err)
 		return result
 	}
 	result = fmt.Sprintf("%s ", applyColor(Checkmark, "green")) + result

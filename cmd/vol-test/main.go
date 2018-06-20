@@ -38,25 +38,22 @@ func Main() int {
 	if !*cleanOnly {
 
 		log.Debug("Starting volume tests")
-		tests := []func() error{
-			cli1.InstallPlugin,
-			cli2.InstallPlugin,
+		tests := []string{
+			"InstallPlugin",
 
-			cli1.CreateVolume,
-			cli2.CreateVolume,
+			"CreateVolume",
 
-			cli1.ConfirmVolume,
-			cli2.ConfirmVolume,
+			"ConfirmVolume",
 
-			cli1.InspectVolume,
-			cli2.InspectVolume,
+			"InspectVolume",
 
-			cli1.CreateContainerWithVolume,
-			cli2.CreateContainerWithVolume,
+			"CreateContainerWithVolume",
 		}
 		results := []string{}
 		for _, v := range tests {
-			results = append(results, lib.RunTestFunc(v))
+			for _, t := range []*lib.TestClient{cli1, cli2} {
+				results = append(results, lib.RunTestFunc(t, v))
+			}
 		}
 
 		fail := false
